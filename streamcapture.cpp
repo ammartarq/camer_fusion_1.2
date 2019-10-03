@@ -1,62 +1,75 @@
 #include "streamcapture.h"
+#include "streamcapture.h"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <QString>
 #include <string>
 #include <QDebug>
+#include "opencv2/videoio/registry.hpp"
 
-StreamCapture::StreamCapture(std::string camIp, const int camNum): QThread (), cam_ip_(camIp), cam_ip_num_(camNum)
+StreamCapture::StreamCapture(std::string camIp, const int camNum): QThread (), cam_ip_(camIp),cam_ip_num_(camNum), abort_sig_(false)
 {
-    cap_ = new cv::VideoCapture(cam_ip_);
+
+}
+StreamCapture::~StreamCapture()
+{
+    disconnectCam();
+    quit();
+    wait();
 }
 void StreamCapture::run()
 {
+
     connectCam();
-    while(1)
-    {   mtx_.lock();
-        *cap_ >> frame_;
+
+    while(isCamConnected() && abort_sig_== false){
+        cap_ >> frame_;
         if (frame_.empty())
         {
             break;
         }
+        cv::waitKey(1);
         converted_frame_= convertFrame(frame_);
-        mtx_.unlock();
         emit sendFrame(converted_frame_, cam_ip_num_);
     }
+    if(abort_sig_)
+    {
+        disconnectCam();
+    }
+
+    
 }
 
-bool StreamCapture::connectCam()
+void StreamCapture::abortSig(bool abort)
 {
-    bool res = cap_->open(cam_ip_);
-    if (!cap_->isOpened())
+    abort_sig_=abort;
+}
+
+void StreamCapture::connectCam()
+{
+    if(!cap_.open(cam_ip_))
     {
-        qDebug()<< "Error opening video stream";
+        abortSig(true);
+        emit warningMassage("Connection failed", cam_ip_num_);
     }
-    if(frame_width_ != -1 && frame_hight_!= -1)
-    {
-        cap_->set(cv:: CAP_PROP_FRAME_WIDTH , frame_width_);
-        cap_->set(cv:: CAP_PROP_FRAME_HEIGHT, frame_width_);
-    }
-    return  res;
+
 }
 bool StreamCapture::disconnectCam()
 {
-
-    if(cap_->isOpened())
+    if(cap_.isOpened())
     {
-        cap_->release();
+        cap_.release();
         return true;
     }
     return false;
 }
 bool StreamCapture::isCamConnected()
 {
-    return cap_->isOpened();
+    return cap_.isOpened();
 }
 QImage StreamCapture::convertFrame(const cv::Mat &mat)
 {
     if(mat.type()==CV_8UC3)
     {
-
         const uchar *qImageBuffer = const_cast<uchar*>(mat.data);
         QImage img(qImageBuffer, mat.cols, mat.rows, static_cast<int>(mat.step), QImage::Format_RGB888);
         return img.rgbSwapped();
@@ -64,16 +77,16 @@ QImage StreamCapture::convertFrame(const cv::Mat &mat)
     else
     {
         qDebug() << "ERROR: Mat could not be converted to QImage."<<mat.type();
-        return QImage();
+
     }
 }
 
 int StreamCapture::getFrameWidth()
 {
-    return static_cast<int>(cap_->get(cv::CAP_PROP_FRAME_WIDTH));
+    return static_cast<int>(cap_.get(cv::CAP_PROP_FRAME_WIDTH));
 }
 
 int StreamCapture::getFrameHeight()
 {
-    return static_cast<int>(cap_->get(cv::CAP_PROP_FRAME_HEIGHT));
+    return static_cast<int>(cap_.get(cv::CAP_PROP_FRAME_HEIGHT));
 }

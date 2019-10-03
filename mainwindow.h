@@ -31,15 +31,22 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     virtual ~MainWindow();
+    static int const EXIT_CODE_REBOOT;
+
+public slots:
 
 private slots:
+    void slotReboot();
     void receiveFrame(QImage frame, int camNum);
-
+    void setAllCapturethread();
+    void warningMassage(QString, const int);
 
 private:
     Ui::MainWindow *ui;
     StreamCapture *captureThread[camNum];
+    QThread *worker;
     QMap<int, QLabel*> m_displayCamera;
+
 
 };
 

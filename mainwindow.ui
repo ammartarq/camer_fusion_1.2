@@ -41,7 +41,7 @@
       <widget class="QWidget" name="scrollAreaWidgetContents">
        <property name="geometry">
         <rect>
-         <x>-1638</x>
+         <x>0</x>
          <y>0</y>
          <width>3243</width>
          <height>663</height>
@@ -59,6 +59,12 @@
           <property name="text">
            <string/>
           </property>
+          <property name="scaledContents">
+           <bool>false</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
          </widget>
         </item>
         <item>
@@ -71,6 +77,9 @@
           </property>
           <property name="text">
            <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
           </property>
          </widget>
         </item>
@@ -85,6 +94,9 @@
           <property name="text">
            <string/>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
          </widget>
         </item>
         <item>
@@ -97,6 +109,9 @@
           </property>
           <property name="text">
            <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
           </property>
          </widget>
         </item>
