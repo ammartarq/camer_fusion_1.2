@@ -28,12 +28,14 @@ SOURCES += \
         circularbuffer.cpp \
         main.cpp \
         mainwindow.cpp \
-        streamcapture.cpp
+        streamcapture.cpp \
+        streamconvert.cpp
 
 HEADERS += \
         circularbuffer.h \
         mainwindow.h \
-        streamcapture.h
+        streamcapture.h \
+        streamconvert.h
 
 FORMS += \
         mainwindow.ui
@@ -41,17 +43,19 @@ FORMS += \
 
 INCLUDEPATH += D:\programs\openCVQ\opencv\build\include
 LIBS += D:\programs\openCVQ_Build\bin\libopencv_core411.dll
+LIBS += D:\programs\openCVQ_Build\bin\libopencv_videoio411.dll
 LIBS += D:\programs\openCVQ_Build\bin\libopencv_highgui411.dll
 LIBS += D:\programs\openCVQ_Build\bin\libopencv_imgcodecs411.dll
 LIBS += D:\programs\openCVQ_Build\bin\libopencv_imgproc411.dll
 LIBS += D:\programs\openCVQ_Build\bin\libopencv_features2d411.dll
 LIBS += D:\programs\openCVQ_Build\bin\libopencv_calib3d411.dll
-LIBS += D:\programs\openCVQ_Build\bin\libopencv_videoio411.dll
-
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    icons.qrc
 
 

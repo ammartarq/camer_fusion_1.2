@@ -3,21 +3,23 @@
 
 //Qt framework
 #include <QObject>
-#include <QSharedPointer>
 #include <QImage>
 #include <QDebug>
 #include <QThread>
-#include <QTimer>
-#include <QSemaphore>
+#include <QString>
+#include <QPixmap>
+#include <QMutex>
 //Opencv
-#include <opencv2/opencv.hpp>
-#include <opencv2/core/core.hpp>
+//Opencv
+#include <opencv2/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/videoio.hpp>
+#include <opencv2/video/video.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/videoio/registry.hpp>
+//Local headers
+#include"streamconvert.h"
 
-//STD framework
-#include <string>
-#include <mutex>
+
 
 
 class StreamCapture: public QThread
@@ -27,34 +29,32 @@ class StreamCapture: public QThread
 public:
     StreamCapture(std::string CamIp, int camNum);
     ~StreamCapture()override;
-    int getFrameWidth();
-    int getFrameHeight();
+
     void connectCam();
     bool disconnectCam();
     bool isCamConnected();
-    QImage convertFrame(const cv::Mat &mat);
     void abortSig(bool abort);
-
-
+    int getFrameWidth()const;
+    int getFrameHeight()const;
+    void setFrameheight(int h);
+    void setFrameWidth(int w);
 private:
     cv::VideoCapture cap_;
     cv::Mat frame_;
     QImage converted_frame_;
-    std::string cam_ip_;
-    std::mutex mtx_;
-    QTimer *timer;
-    QSemaphore sema;
+    QMutex mtx;
+    StreamConvert convert_;
 
+    std::string cam_ip_;
     int cam_ip_num_;
     int frame_width_;
     int frame_hight_;
-    int capture_time_;
     bool abort_sig_;
 
 protected:
     void run()override;
 signals:
-    void sendFrame(QImage convertedFrame, int camNum);
+    void sendFrame(QImage  convertedFrame, int camNum);
     void warningMassage(QString, const int);
 
 
