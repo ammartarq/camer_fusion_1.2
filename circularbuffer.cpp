@@ -1,78 +1,70 @@
 #include "circularbuffer.h"
-#include <iostream>
-
 
 template<class T>
-CircularBuffer<T>::CircularBuffer(const int size): max_size_(size), pos_(0)
+CircularBuffer<T>::CircularBuffer(int size): max_size_(size), pos_(0)
 {
     buffer_.reserve(max_size_);
+    timestamp_.reserve(max_size_);
+    map_frame_timestamp_.reserve(max_size_);
 }
 template<class T>
-void CircularBuffer<T>::addFrame(T &item)
+void CircularBuffer<T>::addFrame(qint64 & time, T &item)
 {
     QMutexLocker locker1(&buffer_mutex_);
     if(!isFull())
     {
+        timestamp_.push_back(time);
         buffer_.push_back(item);
+        map_frame_timestamp_.insert(time, item);
+        if(map_frame_timestamp_.size()==max_size_)
+        {
+            map_frame_timestamp_.erase(map_frame_timestamp_.begin());
+        }
     }
     else
     {
+        timestamp_[pos_]=time;
         buffer_[pos_] = item;
+        map_frame_timestamp_.insert(timestamp_[pos_], buffer_[pos_]);
+        if(map_frame_timestamp_.size()==max_size_)
+        {
+            map_frame_timestamp_.erase(map_frame_timestamp_.begin());
+        }
         pos_ = (pos_ + 1) % max_size_;
     }
 }
 template<class T>
-T CircularBuffer<T>::getFrame()
+T CircularBuffer<T>::getFrame(qint64 ts)
 {
     QMutexLocker locker2(&buffer_mutex_);
     T data;
-    if(isEmpty())
+    if(timestamp_.isEmpty())
     {
         return T();
     }
     else {
-        data = buffer_[pos_];
-        return data;
+        if(map_frame_timestamp_.contains(ts)){
+            data = map_frame_timestamp_[ts];
+            return data;
+        }
+        else {
+            qDebug()<<"No frame found related to the given timestamp";
+            return T();
+        }
     }
 
-}
-
-template<class T>
-void CircularBuffer<T>::reset()
-{
-    buffer_.clear();
-}
-
-template<class T>
-bool CircularBuffer<T>::isEmpty() const
-{
-    return buffer_.size() == 0;
 }
 
 template<class T>
 bool CircularBuffer<T>::isFull() const
 {
-    return buffer_.size() == max_size_;
+    return buffer_.size()&&timestamp_.size() == max_size_;
 }
-
 template<class T>
-int  CircularBuffer<T>::getFreeCapacity() const
+void CircularBuffer<T>::reset()
 {
-    return  max_size_ - buffer_.size();
+    buffer_.clear();
+    timestamp_.clear();
 }
-
-template<class T>
-int  CircularBuffer<T>::getSize() const
-{
-    return buffer_.size() ;
-}
-/*template<class T>
-void CircularBuffer<T>::getContent() const
-{
-    for(auto &i:buffer_)
-    {
-        std::cout<<i<<std::endl;
-    }
-}*/
 
 template class CircularBuffer<QImage>;

@@ -24,8 +24,11 @@ void StreamCapture::run()
         {
             break;
         }
+        //size_t sizeInBytes = frame_.total() * frame_.elemSize();
+        //qDebug()<<sizeInBytes;
         converted_frame_= convert_.convertFrame(frame_);
-        emit sendFrame(converted_frame_, cam_ip_num_);
+        emit sendFrame(cam_ip_num_, converted_frame_, getTimestamp());
+
     }
     if(!isCamConnected())
     {
@@ -65,6 +68,11 @@ bool StreamCapture::isCamConnected()
 void StreamCapture::setFrameWidth(int w)
 {
     cap_.set(cv::CAP_PROP_FRAME_WIDTH, w);
+}
+
+qint64 StreamCapture::getTimestamp() const
+{
+    return QDateTime::currentMSecsSinceEpoch();
 }
 int StreamCapture::getFrameWidth()const
 {

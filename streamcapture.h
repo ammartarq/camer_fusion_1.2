@@ -9,6 +9,8 @@
 #include <QString>
 #include <QPixmap>
 #include <QMutex>
+#include <QDateTime>
+#include <QtGlobal>
 //Opencv
 //Opencv
 #include <opencv2/core.hpp>
@@ -38,6 +40,7 @@ public:
     int getFrameHeight()const;
     void setFrameheight(int h);
     void setFrameWidth(int w);
+    qint64 getTimestamp()const;
 private:
     cv::VideoCapture cap_;
     cv::Mat frame_;
@@ -54,8 +57,9 @@ private:
 protected:
     void run()override;
 signals:
-    void sendFrame(QImage  convertedFrame, int camNum);
+    void sendFrame(int camNum, QImage  convertedFrame, qint64 ts);
     void warningMassage(QString, const int);
+    void sendTimestamp(double ts);
 
 
 

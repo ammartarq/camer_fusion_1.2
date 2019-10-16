@@ -1,15 +1,14 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-
-
 int const MainWindow::EXIT_CODE_REBOOT = -123456789;
-
-
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
-    ui_(new Ui::MainWindow), buffer_(BUFFER_SIZE)
+    ui_(new Ui::MainWindow)
 {
-
+    for(int i = 0; i<CAM_NUM;++i)
+    {
+    buffers_<< new CircularBuffer<QImage>(BUFFER_SIZE);
+    }
     ui_->setupUi(this);
     setWindowTitle(tr("Camera"));
     connect( ui_->actionRestart, SIGNAL (triggered()),this, SLOT (slotReboot()));
@@ -17,7 +16,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(worker_, &QThread::started, this, [this]{labelGenerator(CAM_NUM);});
     connect(worker_, &QThread::started, this, &MainWindow::setAllCaptureThread, Qt::QueuedConnection);
     worker_->start();
-    
 }
 
 MainWindow::~MainWindow()
@@ -34,6 +32,8 @@ MainWindow::~MainWindow()
     
     qDeleteAll(all_label_.begin(),all_label_.end());
     all_label_.clear();
+    qDeleteAll(buffers_.begin(),buffers_.end());
+    buffers_.clear();
     worker_->quit();
     worker_->wait();
     delete worker_;
@@ -58,14 +58,11 @@ void MainWindow::labelGenerator(int CAM_NUM)
 }
 
 //Slots::
-void MainWindow::receiveFrame(QImage frame, const int camNum)
+void MainWindow::receiveFrame(const int camNum, QImage frame, qint64 ts)
 {
-    //qDebug()<<frame.sizeInBytes();
-     buffer_.addFrame(frame);
-     set.insert(frame, camNum);
-    (all_label_.at(camNum))->setPixmap(QPixmap::fromImage(buffer_.getFrame()));
-
-    
+    buffers_.at(camNum)->addFrame(ts, frame);
+    //all_label_.at(camNum)->setPixmap(QPixmap::fromImage(buffers_.at(camNum)->getFrame(ts)));
+    all_label_.at(camNum)->setPixmap(QPixmap::fromImage(frame));
 }
 void MainWindow::warningMassage(QString msg, const int camNum)
 {
@@ -92,6 +89,8 @@ void MainWindow::slotReboot()
     qDebug() << "Performing application reboot...";
     qDeleteAll(all_label_.begin(),all_label_.end());
     all_label_.clear();
+    qDeleteAll(buffers_.begin(),buffers_.end());
+    buffers_.clear();
     
     for(int i =0; i<CAM_NUM; ++i)
     {

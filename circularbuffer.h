@@ -1,39 +1,40 @@
 #ifndef CIRCULARBUFFER_H
 #define CIRCULARBUFFER_H
-#include <cstddef>
-#include <stdio.h>
-#include <sys/types.h>
-#include <iostream>
+
+
 #include<QMutexLocker>
 #include<QSemaphore>
 #include<QVector>
-#include<QVectorIterator>
+#include<QHash>
 #include<QImage>
-
-
+#include<QtGlobal>
+#include<QDebug>
 
 template <class T> class CircularBuffer
+
 {
+
 public:
 
     CircularBuffer(const int size);
-    void addFrame(T &item);
-    T getFrame();
+    //~CircularBuffer();
+    void addFrame(qint64 &ts, T &item);
+    T getFrame(qint64 ts);
     void reset();
-    bool isEmpty() const;
     bool isFull() const;
-    int  getFreeCapacity() const;
-    int  getSize() const;
-    //test void getContent() const;
+
 private:
 
-
     QVector<T> buffer_;
-    int  max_size_;
+    QVector<qint64> timestamp_;
+    QHash<qint64, T>map_frame_timestamp_;
     QMutex buffer_mutex_;
+
+    int max_size_;
     int pos_;
 
-};
 
+
+};
 
 #endif // CIRCULARBUFFER_H

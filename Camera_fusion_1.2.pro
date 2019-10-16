@@ -40,7 +40,12 @@ HEADERS += \
 FORMS += \
         mainwindow.ui
 
+unix{
+INCLUDEPATH += -L/usr/local/include/opencv2
+LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_videoio
 
+}
+win32{
 INCLUDEPATH += D:\programs\openCVQ\opencv\build\include
 LIBS += D:\programs\openCVQ_Build\bin\libopencv_core411.dll
 LIBS += D:\programs\openCVQ_Build\bin\libopencv_videoio411.dll
@@ -49,6 +54,9 @@ LIBS += D:\programs\openCVQ_Build\bin\libopencv_imgcodecs411.dll
 LIBS += D:\programs\openCVQ_Build\bin\libopencv_imgproc411.dll
 LIBS += D:\programs\openCVQ_Build\bin\libopencv_features2d411.dll
 LIBS += D:\programs\openCVQ_Build\bin\libopencv_calib3d411.dll
+
+}
+
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
