@@ -58,6 +58,14 @@ LIBS += D:\programs\openCVQ_Build\bin\libopencv_calib3d411.dll
 }
 
 
+#Adding targets files for the embedded board
+# install
+#INSTALLS        = target
+#target.files    = $$[QT_INSTALL_EXAMPLES]/widgets/layouts/flowlayout
+#target.path     = /home/pi
+
+
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
