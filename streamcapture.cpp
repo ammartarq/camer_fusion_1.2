@@ -24,11 +24,9 @@ void StreamCapture::run()
         {
             break;
         }
-        //size_t sizeInBytes = frame_.total() * frame_.elemSize();
-        //qDebug()<<sizeInBytes;
-        converted_frame_= convert_.convertFrame(frame_);
-        emit sendFrame(cam_ip_num_, converted_frame_, getTimestamp());
 
+        emit sendFrame(data_in_bytes_.serializeData(cam_ip_num_,frame_,getTimestamp()));
+        emit startTcpStreamWriting();
     }
     if(!isCamConnected())
     {

@@ -3,15 +3,12 @@
 
 //Qt framework
 #include <QObject>
-#include <QImage>
 #include <QDebug>
 #include <QThread>
 #include <QString>
-#include <QPixmap>
 #include <QMutex>
 #include <QDateTime>
 #include <QtGlobal>
-//Opencv
 //Opencv
 #include <opencv2/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -19,8 +16,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/videoio/registry.hpp>
 //Local headers
-#include"streamconvert.h"
-
+#include"serializer.h"
 
 
 
@@ -44,11 +40,10 @@ public:
 private:
     cv::VideoCapture cap_;
     cv::Mat frame_;
-    QImage converted_frame_;
     QMutex mtx;
-    StreamConvert convert_;
-
     std::string cam_ip_;
+    Serializer data_in_bytes_;
+
     int cam_ip_num_;
     int frame_width_;
     int frame_hight_;
@@ -57,9 +52,10 @@ private:
 protected:
     void run()override;
 signals:
-    void sendFrame(int camNum, QImage  convertedFrame, qint64 ts);
+    void sendFrame(QByteArray array);
     void warningMassage(QString, const int);
     void sendTimestamp(double ts);
+    void startTcpStreamWriting();
 
 
 

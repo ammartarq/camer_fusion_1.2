@@ -67,4 +67,4 @@ void CircularBuffer<T>::reset()
     timestamp_.clear();
 }
 
-template class CircularBuffer<QImage>;
+template class CircularBuffer<QByteArray>;

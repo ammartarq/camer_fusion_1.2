@@ -2,20 +2,12 @@
 #include "ui_mainwindow.h"
 
 int const MainWindow::EXIT_CODE_REBOOT = -123456789;
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
-    ui_(new Ui::MainWindow)
+MainWindow::MainWindow()
 {
-    for(int i = 0; i<CAM_NUM;++i)
-    {
-    buffers_<< new CircularBuffer<QImage>(BUFFER_SIZE);
-    }
-    ui_->setupUi(this);
-    setWindowTitle(tr("Camera"));
-    connect( ui_->actionRestart, SIGNAL (triggered()),this, SLOT (slotReboot()));
-    worker_ = new QThread();
-    connect(worker_, &QThread::started, this, [this]{labelGenerator(CAM_NUM);});
-    connect(worker_, &QThread::started, this, &MainWindow::setAllCaptureThread, Qt::QueuedConnection);
-    worker_->start();
+    server_=new TCPserver();
+    connect(this,&MainWindow::dataToClient, server_,&TCPserver::dataReady,Qt::QueuedConnection);
+    setAllCaptureThread();
+
 }
 
 MainWindow::~MainWindow()
@@ -30,51 +22,28 @@ MainWindow::~MainWindow()
         delete capture_thread_[i];
     }
     
-    qDeleteAll(all_label_.begin(),all_label_.end());
-    all_label_.clear();
+
     qDeleteAll(buffers_.begin(),buffers_.end());
     buffers_.clear();
-    worker_->quit();
-    worker_->wait();
-    delete worker_;
-    delete ui_;
-    
-}
-void MainWindow::labelGenerator(int CAM_NUM)
-{
-    for (int i = 0; i < CAM_NUM; ++i){
-        all_label_ << new QLabel(this);
-    }
-    
-    
-    for (int i = 0; i < CAM_NUM; ++i)
-    {
-        all_label_.at(i)->setAlignment(Qt::AlignCenter | Qt::AlignCenter);
-        all_label_.at(i)->setFrameStyle(QFrame::Panel | QFrame::Raised);
-        all_label_.at(i)->setText(QString("Connecting to camera %1").arg(i+1));
-        all_label_.at(i)->setMinimumSize(INIT_FRAME_WIDTH,INIT_FRAME_HEIGHT);
-        ui_->horizontalLayout_2->addWidget((all_label_.at(i)));
-    }
 }
 
 //Slots::
-void MainWindow::receiveFrame(const int camNum, QImage frame, qint64 ts)
+void MainWindow::receiveFrame(QByteArray data)
 {
-    buffers_.at(camNum)->addFrame(ts, frame);
-    //all_label_.at(camNum)->setPixmap(QPixmap::fromImage(buffers_.at(camNum)->getFrame(ts)));
-    all_label_.at(camNum)->setPixmap(QPixmap::fromImage(frame));
+   emit dataToClient(data);
+
 }
 void MainWindow::warningMassage(QString msg, const int camNum)
 {
-    all_label_.at(camNum)->setText(msg);
-}
 
+}
 void MainWindow::setAllCaptureThread()
 {
     for(int i =0; i<CAM_NUM; ++i)
     {
         capture_thread_[i]= new StreamCapture("rtp://192.168.1.1:5"+std::to_string(1+i)+"000", i);
         connect(capture_thread_[i], &StreamCapture::sendFrame, this, &MainWindow::receiveFrame, Qt::QueuedConnection);
+        connect(capture_thread_[i], &StreamCapture::startTcpStreamWriting, server_, &TCPserver::getDatacmd, Qt::QueuedConnection);
         connect(capture_thread_[i], &StreamCapture::warningMassage, this, &MainWindow::warningMassage, Qt::QueuedConnection);
     }
     for(int i =0; i<CAM_NUM; ++i)
@@ -87,8 +56,6 @@ void MainWindow::setAllCaptureThread()
 void MainWindow::slotReboot()
 {
     qDebug() << "Performing application reboot...";
-    qDeleteAll(all_label_.begin(),all_label_.end());
-    all_label_.clear();
     qDeleteAll(buffers_.begin(),buffers_.end());
     buffers_.clear();
     

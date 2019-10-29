@@ -3,10 +3,8 @@
 
 
 #include<QMutexLocker>
-#include<QSemaphore>
 #include<QVector>
 #include<QHash>
-#include<QImage>
 #include<QtGlobal>
 #include<QDebug>
 
@@ -36,5 +34,5 @@ private:
 
 
 };
-
+#include"circularbuffer.cpp"
 #endif // CIRCULARBUFFER_H
